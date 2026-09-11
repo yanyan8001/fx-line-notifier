@@ -19,19 +19,15 @@ async function monitorSignals() {
   for (const symbol of symbols) {
     try {
       const signalData = await signalEngine.generateSignal(symbol, interval);
-
       if (!signalData) {
         console.log(`⏭️  [${symbol}] No data`);
         continue;
       }
-
       if (signalData.signal) {
         const today = new Date().toDateString();
         const signalKey = `${symbol}_${signalData.signal}_${today}`;
-
         if (!notifiedSignals.has(signalKey)) {
           console.log(`🚨 [${symbol}] ${signalData.signal} Signal!`);
-
           const tpslData = signalEngine.calculateTPSL(
             parseFloat(signalData.currentPrice),
             signalData.signal,
@@ -40,7 +36,6 @@ async function monitorSignals() {
             rrRatio,
             symbol
           );
-
           await lineNotifier.sendSignalNotification(signalData, tpslData);
           notifiedSignals.add(signalKey);
         }
@@ -50,14 +45,12 @@ async function monitorSignals() {
     } catch (error) {
       console.error(`❌ Error ${symbol}:`, error.message);
     }
-
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
 }
 
 console.log('🚀 FX Notifier starting...');
 monitorSignals();
-
 setInterval(monitorSignals, 5 * 60 * 1000);
 
 app.get('/health', (req, res) => {
@@ -70,10 +63,7 @@ app.get('/trigger', async (req, res) => {
 });
 
 app.get('/status', (req, res) => {
-  res.json({
-    status: 'running',
-    notifiedCount: notifiedSignals.size
-  });
+  res.json({ status: 'running', notifiedCount: notifiedSignals.size });
 });
 
 app.listen(PORT, () => {
