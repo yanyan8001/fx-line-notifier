@@ -14,58 +14,35 @@ async function monitorSignals() {
   const riskPercent = parseFloat(process.env.RISK_PERCENT) || 1;
   const rrRatio = parseInt(process.env.RR_RATIO) || 2;
 
-  console.log(`\n🔍 [${new Date().toLocaleString('ja-JP')}] Checking signals...`);
+  console.log(`🔍 Checking signals at ${new Date().toISOString()}`);
 
   for (const symbol of symbols) {
     try {
       const signalData = await signalEngine.generateSignal(symbol, interval);
-      if (!signalData) {
-        console.log(`⏭️  [${symbol}] No data`);
-        continue;
-      }
+      if (!signalData) continue;
       if (signalData.signal) {
         const today = new Date().toDateString();
         const signalKey = `${symbol}_${signalData.signal}_${today}`;
         if (!notifiedSignals.has(signalKey)) {
-          console.log(`🚨 [${symbol}] ${signalData.signal} Signal!`);
-          const tpslData = signalEngine.calculateTPSL(
-            parseFloat(signalData.currentPrice),
-            signalData.signal,
-            accountSize,
-            riskPercent,
-            rrRatio,
-            symbol
-          );
+          console.log(`🚨 Signal: ${symbol} ${signalData.signal}`);
+          const tpslData = signalEngine.calculateTPSL(parseFloat(signalData.currentPrice), signalData.signal, accountSize, riskPercent, rrRatio, symbol);
           await lineNotifier.sendSignalNotification(signalData, tpslData);
           notifiedSignals.add(signalKey);
         }
-      } else {
-        console.log(`➖ [${symbol}] No signal`);
       }
-    } catch (error) {
-      console.error(`❌ Error ${symbol}:`, error.message);
+    } catch (e) {
+      console.error(`❌ ${symbol}:`, e.message);
     }
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(r => setTimeout(r, 1000));
   }
 }
 
-console.log('🚀 FX Notifier starting...');
+console.log('🚀 Starting...');
 monitorSignals();
 setInterval(monitorSignals, 5 * 60 * 1000);
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/trigger', async (req, res) => { await monitorSignals(); res.json({ triggered: true }); });
+app.get('/status', (req, res) => res.json({ running: true, notified: notifiedSignals.size }));
 
-app.get('/trigger', async (req, res) => {
-  await monitorSignals();
-  res.json({ message: 'Triggered' });
-});
-
-app.get('/status', (req, res) => {
-  res.json({ status: 'running', notifiedCount: notifiedSignals.size });
-});
-
-app.listen(PORT, () => {
-  console.log(`✅ Server on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`✅ Server on ${PORT}`));
