@@ -115,7 +115,7 @@ function fetchFXDataFromAlphaVantage(fromSymbol, toSymbol) {
               return reject(new Error(json.Note));
             }
 
-            console.log('AV:', data.slice(0, 200));
+            console.log('AV:', data.slice(0, 300).replace(/\s+/g, ' '));  
 if (json.Information) return reject(new Error(json.Information));
 const timeSeries = json[Object.keys(json).find(k => k.startsWith('Time Series'))];
             if (!timeSeries) {
