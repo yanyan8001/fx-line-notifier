@@ -70,7 +70,7 @@ class DataCache {
   }
 }
 
-const cache = new DataCache(5 * 60 * 1000);
+const cache = new DataCache(6 * 60 * 60 * 1000);
 
 // ============================================
 // Alpha Vantage API Call
