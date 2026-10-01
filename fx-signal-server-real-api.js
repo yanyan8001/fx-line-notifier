@@ -269,7 +269,7 @@ async function runScheduledCheck() {
 }
 
 // 5分ごとに実行
-const INTERVAL_MS = 5 * 60 * 1000;
+const INTERVAL_MS = 6 * 60 * 60 * 1000;
 setInterval(runScheduledCheck, INTERVAL_MS);
 
 // サーバー起動時に 1 回実行
