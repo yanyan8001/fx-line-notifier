@@ -246,13 +246,7 @@ async function runScheduledCheck() {
     const usdCandles = await fetchFXDataFromAlphaVantage('USD', 'JPY');
     const usdSignal = generateSignal('USDJPY', usdCandles);
 
-    const eurCandles = await fetchFXDataFromAlphaVantage('EUR', 'JPY');
-    const eurSignal = generateSignal('EURJPY', eurCandles);
-
-    const gbpCandles = await fetchFXDataFromAlphaVantage('GBP', 'JPY');
-    const gbpSignal = generateSignal('GBPJPY', gbpCandles);
-
-    const signals = [usdSignal, eurSignal, gbpSignal];
+    const signals = [usdSignal];
 
     for (const signal of signals) {
       if (signal.signal === 'BUY' || signal.signal === 'SELL') {
