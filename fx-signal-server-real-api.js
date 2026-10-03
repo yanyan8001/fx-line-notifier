@@ -14,7 +14,7 @@ const USE_REAL_API = process.env.USE_REAL_API !== 'false';
 
 // LINE 設定
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN || 'your-channel-access-token';
-const LINE_USER_ID = process.env.LINE_USER_ID || 'star_8001';
+const LINE_USER_ID = process.env.LINE_USER_ID || 'Ue2094be0b70db29ad99e51727b82b509';
 
 // ============================================
 // LINE 通知関数
@@ -125,18 +125,40 @@ function createSignalFlexMessage(signal) {
  */
 async function sendLineNotification(signal) {
   if (!LINE_CHANNEL_ACCESS_TOKEN || LINE_CHANNEL_ACCESS_TOKEN === 'your-channel-access-token') {
-    console.log(`\n📱 [LINE] Would send to ${LINE_USER_ID}:`);
-    console.log(`   ${signal.symbol} ${signal.signal}`);
+    console.log('LINE token not set');
     return;
   }
-
-  try {
-    console.log(`\n📱 [LINE] Sending ${signal.symbol} ${signal.signal} to ${LINE_USER_ID}...`);
-  } catch (error) {
-    console.error('Error sending LINE notification:', error.message);
-  }
+  const https = require('https');
+  const body = JSON.stringify({
+    to: LINE_USER_ID,
+    messages: [{
+      type: 'flex',
+      altText: `${signal.symbol} ${signal.signal}`,
+      contents: createSignalFlexMessage(signal),
+    }],
+  });
+  await new Promise((resolve) => {
+    const req = https.request('https://api.line.me/v2/bot/message/push', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`,
+        'Content-Length': Buffer.byteLength(body),
+      },
+    }, (res) => {
+      let d = '';
+      res.on('data', (c) => (d += c));
+      res.on('end', () => {
+        console.log(`LINE response: ${res.statusCode} ${d}`);
+        resolve();
+      });
+    });
+    req.on('error', (e) => { console.error('LINE error:', e.message); resolve(); });
+    req.write(body);
+    req.end();
+  });
 }
-
+    
 // ============================================
 // HTTP サーバー
 // ============================================
@@ -162,7 +184,17 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
     return;
   }
-
+  // TEMP: LINEテスト用（確認後に削除）
+  if (pathname === '/test-line' && req.method === 'GET') {
+    sendLineNotification({
+      symbol: 'USDJPY', signal: 'TEST', price: 158.07,
+      sma20: '156.1885', rsi14: '76.9', time: 'test', reason: 'LINE test',
+    }).then(() => {
+      res.writeHead(200);
+      res.end(JSON.stringify({ sent: true }));
+    });
+    return;
+  }
   // GET /signal
   if (pathname === '/signal' && req.method === 'GET') {
     (async () => {
