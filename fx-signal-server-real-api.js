@@ -184,17 +184,7 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
     return;
   }
-  // TEMP: LINEテスト用（確認後に削除）
-  if (pathname === '/test-line' && req.method === 'GET') {
-    sendLineNotification({
-      symbol: 'USDJPY', signal: 'TEST', price: 158.07,
-      sma20: '156.1885', rsi14: '76.9', time: 'test', reason: 'LINE test',
-    }).then(() => {
-      res.writeHead(200);
-      res.end(JSON.stringify({ sent: true }));
-    });
-    return;
-  }
+
   // GET /signal
   if (pathname === '/signal' && req.method === 'GET') {
     (async () => {
