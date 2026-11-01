@@ -286,10 +286,10 @@ async function runScheduledCheck() {
 
 // 5分ごとに実行
 const INTERVAL_MS = 3 * 60 * 60 * 1000;
-setInterval(runScheduledCheck, INTERVAL_MS);
+
 
 // サーバー起動時に 1 回実行
-runScheduledCheck();
+require('./momentum').start();
 
 // ============================================
 // サーバー起動
